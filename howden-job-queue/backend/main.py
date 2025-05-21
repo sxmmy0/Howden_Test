@@ -6,66 +6,66 @@ import os
 
 app = FastAPI()
 
-# Allow React frontend to call this API (adjust for production)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # or "*" for all origins (not secure for prod)
+    allow_origins=["http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Load job data once at startup
-EXCEL_PATH = "HowdenTest.xlsx"  # Make sure HowdenTest.xlsx is renamed or copied here
+EXCEL_PATH = "HowdenTest.xlsx"
 JOBS_DF = None
+
+def normalize_columns(df):
+    df.columns = [col.strip().replace(" ", "").lower() for col in df.columns]
+    return df
 
 @app.on_event("startup")
 def load_excel_data():
     global JOBS_DF
     try:
-        # You can load specific sheets or combine them
-        sheet1 = pd.read_excel(EXCEL_PATH, sheet_name=0)
-        sheet2 = pd.read_excel(EXCEL_PATH, sheet_name=1)
+        sheet1 = normalize_columns(pd.read_excel(EXCEL_PATH, sheet_name=0))
+        sheet2 = normalize_columns(pd.read_excel(EXCEL_PATH, sheet_name=1))
+        sheet3 = normalize_columns(pd.read_excel(EXCEL_PATH, sheet_name=2))
 
-        JOBS_DF = pd.concat([sheet1, sheet2], ignore_index=True)
         print("Sheet 1 columns:", sheet1.columns.tolist())
         print("Sheet 2 columns:", sheet2.columns.tolist())
+        print("Sheet 3 columns:", sheet3.columns.tolist())
+
+        JOBS_DF = pd.concat([sheet1, sheet2], ignore_index=True)
 
     except Exception as e:
         print(f"Error loading Excel file: {e}")
         JOBS_DF = pd.DataFrame()
-
 
 @app.get("/jobs")
 def get_jobs(view_all: bool = Query(False), user_id: str = Query("user_123")):
     if JOBS_DF is None or JOBS_DF.empty:
         raise HTTPException(status_code=500, detail="Job data not loaded")
 
-    # Example column: 'createdBy' — filter by user unless view_all is True
     df = JOBS_DF.copy()
     if not view_all:
-        df = df[df["createdBy"] == user_id]
+        df = df[df["submittedby"] == user_id]
 
-    # Transform data into list of dicts, add logic for detail column
     jobs = []
     for _, row in df.iterrows():
         details = None
-        if pd.notna(row.get("errorMessage")):
-            details = row["errorMessage"]
-        elif pd.notna(row.get("outputResponse")):
-            filename = row["outputResponse"]
+        if pd.notna(row.get("errormessage")):
+            details = row["errormessage"]
+        elif pd.notna(row.get("outputresult")):
+            filename = row["outputresult"]
             details = f"/download/{filename}"
 
         jobs.append({
-            "workFlowId": row.get("workFlowId"),
-            "submittedBy": row.get("submittedBy"),
-            "statusMessage": row.get("statusMessage"),
-            "createdAt": str(row.get("createdAt")),
+            "jobId": row.get("name"),
+            "createdBy": row.get("submittedby"),
+            "status": row.get("status"),
+            "createdAt": str(row.get("submittime")),
             "details": details,
         })
 
     return {"jobs": jobs}
-
 @app.get("/download/{filename}")
 def download_output_file(filename: str):
     file_path = os.path.join("data", "responses", filename)
