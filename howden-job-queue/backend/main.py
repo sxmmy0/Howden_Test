@@ -28,10 +28,13 @@ def load_excel_data():
         sheet2 = pd.read_excel(EXCEL_PATH, sheet_name=1)
 
         JOBS_DF = pd.concat([sheet1, sheet2], ignore_index=True)
+        print("Sheet 1 columns:", sheet1.columns.tolist())
+        print("Sheet 2 columns:", sheet2.columns.tolist())
 
     except Exception as e:
         print(f"Error loading Excel file: {e}")
         JOBS_DF = pd.DataFrame()
+
 
 @app.get("/jobs")
 def get_jobs(view_all: bool = Query(False), user_id: str = Query("user_123")):
@@ -54,9 +57,9 @@ def get_jobs(view_all: bool = Query(False), user_id: str = Query("user_123")):
             details = f"/download/{filename}"
 
         jobs.append({
-            "jobId": row.get("jobId"),
-            "createdBy": row.get("createdBy"),
-            "status": row.get("status"),
+            "workFlowId": row.get("workFlowId"),
+            "submittedBy": row.get("submittedBy"),
+            "statusMessage": row.get("statusMessage"),
             "createdAt": str(row.get("createdAt")),
             "details": details,
         })
