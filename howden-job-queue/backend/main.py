@@ -21,6 +21,9 @@ def normalize_columns(df):
     df.columns = [col.strip().replace(" ", "").lower() for col in df.columns]
     return df
 
+def safe_get(row, key):
+    return row.get(key) if pd.notna(row.get(key)) else None
+
 @app.on_event("startup")
 def load_excel_data():
     global JOBS_DF
@@ -58,13 +61,12 @@ def get_jobs(view_all: bool = Query(False), user_id: str = Query("user_123")):
             details = f"/download/{filename}"
 
         jobs.append({
-            "jobId": row.get("name"),
-            "createdBy": row.get("submittedby"),
-            "status": row.get("status"),
-            "createdAt": str(row.get("submittime")),
-            "details": details,
+            "jobId": safe_get(row, "name"),
+            "createdBy": safe_get(row, "submittedby"),
+            "status": safe_get(row, "status"),
+            "createdAt": str(safe_get(row, "submittime")) if safe_get(row, "submittime") else None,
+            "details": details
         })
-
     return {"jobs": jobs}
 @app.get("/download/{filename}")
 def download_output_file(filename: str):
