@@ -1,10 +1,36 @@
+import React, { useState } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import LoginPage from "./pages/LoginPage";
+import JobsPage from "./pages/JobsPage";
+
 function App() {
+  const [userId, setUserId] = useState(null);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <h1 className="text-3xl font-bold text-blue-600">
-        Hello Howden!
-      </h1>
-    </div>
+    <Router>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            userId ? (
+              <Navigate to="/jobs" />
+            ) : (
+              <LoginPage setUserId={setUserId} />
+            )
+          }
+        />
+        <Route
+          path="/jobs"
+          element={
+            userId ? (
+              <JobsPage userId={userId} />
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+      </Routes>
+    </Router>
   );
 }
 
