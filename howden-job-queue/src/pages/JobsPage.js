@@ -185,6 +185,8 @@ export default function JobsPage({ userId }) {
                             <a
                               href={`http://localhost:8000${job.details}`}
                               download
+                              target="_blank"
+                              rel="noreferrer"
                               className="text-blue-600 underline"
                             >
                               Download
@@ -193,7 +195,7 @@ export default function JobsPage({ userId }) {
                             <span className="text-red-600">{job.details}</span>
                           )
                         ) : (
-                          "-"
+                          <span className="text-gray-500">—</span>
                         )}
                       </td>
                     </tr>
