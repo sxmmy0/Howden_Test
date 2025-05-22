@@ -54,7 +54,6 @@ cd howden-job-queue
 ### 🖥 2. Run the Frontend (React)
 
 ```
-cd howden-job-queue
 npm install
 npm start
 ```
