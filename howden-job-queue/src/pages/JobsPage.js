@@ -47,19 +47,45 @@ export default function JobsPage({ userId }) {
     }
   };
 
+  // Filter and sort jobs based on search and sort settings
   const filteredJobs = jobs
-    .filter((job) =>
-      Object.values(job)
-        .join(" ")
-        .toLowerCase()
-        .includes(search.toLowerCase())
-    )
+    .filter((job) => {
+      const searchLower = search.toLowerCase();
+      return (
+        job.jobId?.toString().toLowerCase().includes(searchLower) ||
+        job.createdBy?.toLowerCase().includes(searchLower) ||
+        job.status?.toLowerCase().includes(searchLower) ||
+        job.createdAt?.toLowerCase().includes(searchLower) ||
+        job.details?.toLowerCase().includes(searchLower)
+      );
+    })
     .sort((a, b) => {
-      if (sortOrder === "asc") {
-        return (a[sortKey] || "").localeCompare(b[sortKey] || "");
-      } else {
-        return (b[sortKey] || "").localeCompare(a[sortKey] || "");
-      }
+      const getVal = (item) => {
+        const raw = String(item[sortKey] ?? "").toLowerCase();
+
+        // If sorting jobId, extract numeric value for natural sort
+        if (sortKey === "jobId") {
+          const num = raw.match(/\d+/);
+          return num ? parseInt(num[0], 10) : 0;
+        }
+
+        return raw;
+      };
+
+      const aVal = getVal(a);
+      const bVal = getVal(b);
+
+      return sortOrder === "asc"
+        ? aVal > bVal
+          ? 1
+          : aVal < bVal
+          ? -1
+          : 0
+        : aVal < bVal
+        ? 1
+        : aVal > bVal
+        ? -1
+        : 0;
     });
 
   const totalPages = Math.ceil(filteredJobs.length / ITEMS_PER_PAGE);
@@ -121,19 +147,29 @@ export default function JobsPage({ userId }) {
               <table className="min-w-full text-sm text-left">
                 <thead>
                   <tr className="bg-blue-100 text-blue-900">
-                    {["jobId", "createdBy", "status", "createdAt", "details"].map((key) => (
-                      <th
-                        key={key}
-                        onClick={() => key !== "details" && handleSort(key)}
-                        className={`p-3 cursor-pointer ${key === sortKey ? "font-bold underline" : ""}`}
-                      >
-                        {key === "jobId"
+                    {["jobId", "createdBy", "status", "createdAt", "details"].map((key) => {
+                      const label =
+                        key === "jobId"
                           ? "Job ID"
                           : key === "createdAt"
                           ? "Created At"
-                          : key.charAt(0).toUpperCase() + key.slice(1)}
-                      </th>
-                    ))}
+                          : key.charAt(0).toUpperCase() + key.slice(1);
+
+                      const isActive = key === sortKey;
+                      const arrow = isActive ? (sortOrder === "asc" ? "↑" : "↓") : "";
+
+                      return (
+                        <th
+                          key={key}
+                          onClick={() => key !== "details" && handleSort(key)}
+                          className={`p-3 cursor-pointer select-none ${
+                            isActive ? "font-bold text-blue-700" : ""
+                          }`}
+                        >
+                          {label} {arrow}
+                        </th>
+                      );
+                    })}
                   </tr>
                 </thead>
                 <tbody>
