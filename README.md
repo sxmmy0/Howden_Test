@@ -29,7 +29,7 @@ The application is a two-page system:
 ## 🧠 Assumptions Made
 
 - Authentication is simulated, not production-grade (no password hashing or JWT verification).
-- Excel file (jobs.xlsx) contains two sheets with job data; third sheet was used only for field reference.
+- Excel file (HowdenTest.xlsx) contains two sheets with job data; third sheet was used only for field reference.
 - All users are matched by submittedBy email.
 - outputResult field refers to a downloadable file (if present).
 - errorMessage is shown if there’s no output file.
