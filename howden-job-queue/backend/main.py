@@ -49,7 +49,8 @@ def get_jobs(view_all: bool = Query(False), user_id: str = Query("user_123")):
 
     df = JOBS_DF.copy()
     if not view_all:
-        df = df[df["submittedby"] == user_id]
+        # Case-insensitive email match
+        df = df[df["submittedby"].str.strip().str.lower() == user_id.strip().lower()]
 
     jobs = []
     for _, row in df.iterrows():
