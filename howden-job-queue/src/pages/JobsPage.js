@@ -52,11 +52,11 @@ export default function JobsPage({ userId }) {
     .filter((job) => {
       const searchLower = search.toLowerCase();
       return (
-        job.jobId?.toString().toLowerCase().includes(searchLower) ||
-        job.createdBy?.toLowerCase().includes(searchLower) ||
-        job.status?.toLowerCase().includes(searchLower) ||
-        job.createdAt?.toLowerCase().includes(searchLower) ||
-        job.details?.toLowerCase().includes(searchLower)
+        String(job.jobId ?? "").toLowerCase().includes(searchLower) ||
+        String(job.createdBy ?? "").toLowerCase().includes(searchLower) ||
+        String(job.status ?? "").toLowerCase().includes(searchLower) ||
+        String(job.createdAt ?? "").toLowerCase().includes(searchLower) ||
+        String(job.details ?? "").toLowerCase().includes(searchLower)
       );
     })
     .sort((a, b) => {
