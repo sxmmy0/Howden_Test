@@ -1,6 +1,7 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
+from pydantic import BaseModel
 import pandas as pd
 import os
 
@@ -14,8 +15,34 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+#Dummy users for login validation
+USERS = {
+    "christest@cedeconv.com": "password123",
+    "tmandel@test.com": "password123",
+    "christest@catkit.com": "password123",
+    "chrisProd.catkitTest@catkit.com": "password123",
+    "tmadmin@hyperiongrp.com": "password123",
+    "chadmin7@howdentiger.com": "password123",
+    "theo.mandel@howdenre.com": "password123",
+    "christian.harries@howdenre.com": "password123",
+}
+
+
 EXCEL_PATH = "HowdenTest.xlsx"
 JOBS_DF = None
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+@app.post("/login")
+def login(request: LoginRequest):
+    email = request.email.strip().lower()
+    password = request.password
+
+    if email not in USERS or USERS[email] != password:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    return {"token": "fake-jwt-token", "user_id": email}
 
 def normalize_columns(df):
     df.columns = [col.strip().replace(" ", "").lower() for col in df.columns]
@@ -23,7 +50,6 @@ def normalize_columns(df):
 
 def safe_get(row, key):
     return row.get(key) if pd.notna(row.get(key)) else None
-
 @app.on_event("startup")
 def load_excel_data():
     global JOBS_DF
